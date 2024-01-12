@@ -1,0 +1,109 @@
+﻿<Window x:Class="MC_027.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MC_027"
+        mc:Ignorable="d"
+        Title="MC-027 Test Application" Height="500" Width="666"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+        <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"></RowDefinition>
+            <RowDefinition Height="5*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"></ColumnDefinition>
+            <ColumnDefinition Width="3*"></ColumnDefinition>
+            <ColumnDefinition Width="2*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <!-- Info section -->
+        <StackPanel Grid.Column="0" Grid.Row="0" Grid.RowSpan="2">
+            <TextBlock Text="Some general info"/>
+            <TextBlock Text="{Binding ElementName=moduleInfo, Path=FirmwareVersion}"/>
+            <TextBlock Text="{Binding ElementName=moduleInfo, Path=UniqueID}"/>
+        </StackPanel>
+        <!-- Menu section -->
+        <Grid Grid.Column="1" Grid.Row="0" x:Name="MenuLayout">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="buttonStartStop" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Content="Start" Click="ButtonStartStop_Click"/>
+            <GroupBox Grid.Column="1" Grid.Row="0" Header="Modbus Address">
+                <ComboBox x:Name="ModbusAddress" SelectionChanged="ModbusAddress_SelectionChanged"/>
+            </GroupBox>
+            <GroupBox Grid.Column="1" Grid.Row="1" Header="Modbus Speed">
+                <ComboBox x:Name="ModbusSpeed" SelectionChanged="ModbusSpeed_SelectionChanged"/>
+            </GroupBox>
+            <GroupBox Grid.Column="1" Grid.Row="2" Header="COM-Port">
+                <ComboBox x:Name="ComPort" SelectionChanged="ComPort_SelectionChanged"/>
+            </GroupBox>
+            <Button Grid.Column="2" Grid.Row="0" Content="Test Indication"/>
+            <Button Grid.Column="2" Grid.Row="1" Content="Calibrate Keyboard"/>
+        </Grid>
+        <!-- Resolvers section -->
+        <StackPanel Grid.Column="1" Grid.Row="1" x:Name="ResolversLayout">
+            <Grid Grid.Column="1" Grid.Row="0" x:Name="ResolversAngles">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <GroupBox Grid.Column="0" Header="Resolver 1 Angle">
+                    <TextBlock Text="-" HorizontalAlignment="Center"/>
+                </GroupBox>
+                <GroupBox Grid.Column="1" Header="Resolver 2 Angle">
+                    <TextBlock Text="-" HorizontalAlignment="Center"/>
+                </GroupBox>
+                <GroupBox Grid.Column="2" Header="Offset Angle">
+                    <TextBlock Text="0" HorizontalAlignment="Center"/>
+                </GroupBox>
+            </Grid>
+            <DataGrid x:Name="ResolversParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White">
+                <DataGrid.Columns>
+                    <DataGridTextColumn IsReadOnly="True" Header="Param" Width="2*" Binding="{Binding Path=Description}"/>
+                    <DataGridComboBoxColumn Header="Resolver 1" Width="*" />
+                    <DataGridComboBoxColumn Header="Resolver 2" Width="*" />
+                </DataGrid.Columns>
+                <DataGrid.Items>
+                    <local:ResolversParam x:Name="LosThreshold" Description="LOS Threshold"/>
+                    <local:ResolversParam x:Name="DosOverrangeThreshold" Description="DOS Overrange Threshold"/>
+                    <local:ResolversParam x:Name="DosMismatchThreshold" Description="DOS Mismatch Threshold"/>
+                    <local:ResolversParam x:Name="DosResetMaxThreshold" Description="DOS Reset Max Threshold"/>
+                    <local:ResolversParam x:Name="DosResetMinThreshold" Description="DOS Reset Min Threshold"/>
+                    <local:ResolversParam x:Name="LotHighThreshold" Description="LOT High Threshold"/>
+                    <local:ResolversParam x:Name="LotLowThreshold" Description="LOT Low Threshold"/>
+                    <local:ResolversParam x:Name="ExcitationFrequency" Description="Excitation Frequency"/>
+                </DataGrid.Items>
+            </DataGrid>
+        </StackPanel>
+        <!-- Regulator section -->
+        <Grid Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" x:Name="RegulatorLayout">
+            <DataGrid x:Name="RegulatorParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White">
+                <DataGrid.Columns>
+                    <DataGridTextColumn IsReadOnly="True"  Header="Param" Binding="{Binding Path=Description}" Width="*" />
+                    <DataGridComboBoxColumn Header="Value" SelectedItemBinding="{Binding Path=Value}" Width="*" />
+                </DataGrid.Columns>
+                <DataGrid.Items>
+                    <local:RegulatorParam x:Name="DesiredAngle" Description="Desired Angle"/>
+                    <local:RegulatorParam x:Name="IntegralPart" Description="Integral Part"/>
+                    <local:RegulatorParam x:Name="Kp" Description="kp"/>
+                    <local:RegulatorParam x:Name="Ki" Description="ki"/>
+                    <local:RegulatorParam x:Name="Kd" Description="kd"/>
+                    <local:RegulatorParam x:Name="Dz" Description="dz"/>
+                    <local:RegulatorParam x:Name="Tau" Description="tau"/>
+                    <local:RegulatorParam x:Name="IntegralMin" Description="Integral Min"/>
+                    <local:RegulatorParam x:Name="IntegralMax" Description="Integral Max"/>
+                </DataGrid.Items>
+            </DataGrid>
+        </Grid>
+    </Grid>
+</Window>
