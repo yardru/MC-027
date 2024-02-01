@@ -36,7 +36,8 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Button x:Name="buttonStartStop" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Content="Start" Click="ButtonStartStop_Click"/>
+            <ToggleButton x:Name="StartStopButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3
+                    " Content="Start" Click="StartStopButton_Click"/>
             <GroupBox Grid.Column="1" Grid.Row="0" Header="Modbus Address">
                 <ComboBox x:Name="ModbusAddress" SelectionChanged="ModbusAddress_SelectionChanged"/>
             </GroupBox>
@@ -46,8 +47,9 @@
             <GroupBox Grid.Column="1" Grid.Row="2" Header="COM-Port">
                 <ComboBox x:Name="ComPort" SelectionChanged="ComPort_SelectionChanged"/>
             </GroupBox>
-            <Button Grid.Column="2" Grid.Row="0" Content="Test Indication"/>
-            <Button Grid.Column="2" Grid.Row="1" Content="Calibrate Keyboard"/>
+            <ToggleButton x:Name="TestIndicationButton" Grid.Column="2" Grid.Row="0" Click="TestIndicationButton_Click" Content="Test Indication"/>
+            <Button x:Name="CalibrateKeyboardButton" Grid.Column="2" Grid.Row="1" Click="CalibrateKeyboardButton_Click" Content="Calibrate Keyboard"/>
+            <ToggleButton x:Name="EnableTunesButton" Grid.Column="2" Grid.Row="2" Click="EnableTunesButton_Click" Content="Enable Tunes"/>
         </Grid>
         <!-- Resolvers section -->
         <StackPanel Grid.Column="1" Grid.Row="1" x:Name="ResolversLayout">
@@ -58,30 +60,29 @@
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <GroupBox Grid.Column="0" Header="Resolver 1 Angle">
-                    <TextBlock Text="-" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="Resolver1Angle" Text="-" HorizontalAlignment="Center"/>
                 </GroupBox>
                 <GroupBox Grid.Column="1" Header="Resolver 2 Angle">
-                    <TextBlock Text="-" HorizontalAlignment="Center"/>
-                </GroupBox>
-                <GroupBox Grid.Column="2" Header="Offset Angle">
-                    <TextBlock Text="0" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="Resolver2Angle" Text="-" HorizontalAlignment="Center"/>
                 </GroupBox>
             </Grid>
-            <DataGrid x:Name="ResolversParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White">
+            <DataGrid x:Name="ResolversParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray"  CanUserSortColumns="False" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="ResolversParams_MouseDoubleClick">
                 <DataGrid.Columns>
                     <DataGridTextColumn IsReadOnly="True" Header="Param" Width="2*" Binding="{Binding Path=Description}"/>
-                    <DataGridComboBoxColumn Header="Resolver 1" Width="*" />
-                    <DataGridComboBoxColumn Header="Resolver 2" Width="*" />
+                    <DataGridTextColumn IsReadOnly="True" Header="Resolver 1" Width="*" Binding="{Binding Path=Value1Str}"/>
+                    <DataGridTextColumn IsReadOnly="True" Header="Resolver 2" Width="*" Binding="{Binding Path=Value2Str}"/>
+                    <!-- <DataGridComboBoxColumn Header="Resolver 1" Width="*" SelectedValueBinding="{Binding Path=Value1}"/> -->
+                    <!-- <DataGridComboBoxColumn Header="Resolver 2" Width="*" SelectedValueBinding="{Binding Path=Value2}"/> -->
                 </DataGrid.Columns>
                 <DataGrid.Items>
-                    <local:ResolversParam x:Name="LosThreshold" Description="LOS Threshold"/>
-                    <local:ResolversParam x:Name="DosOverrangeThreshold" Description="DOS Overrange Threshold"/>
-                    <local:ResolversParam x:Name="DosMismatchThreshold" Description="DOS Mismatch Threshold"/>
-                    <local:ResolversParam x:Name="DosResetMaxThreshold" Description="DOS Reset Max Threshold"/>
-                    <local:ResolversParam x:Name="DosResetMinThreshold" Description="DOS Reset Min Threshold"/>
-                    <local:ResolversParam x:Name="LotHighThreshold" Description="LOT High Threshold"/>
-                    <local:ResolversParam x:Name="LotLowThreshold" Description="LOT Low Threshold"/>
-                    <local:ResolversParam x:Name="ExcitationFrequency" Description="Excitation Frequency"/>
+                    <local:ResolversParam x:Name="LosThreshold"          Address="0x2000" MeasurementUnit="V" Description="LOS Threshold" />
+                    <local:ResolversParam x:Name="DosOverrangeThreshold" Address="0x2001" MeasurementUnit="V" Description="DOS Overrange Threshold"/>
+                    <local:ResolversParam x:Name="DosMismatchThreshold"  Address="0x2002" MeasurementUnit="V" Description="DOS Mismatch Threshold"/>
+                    <local:ResolversParam x:Name="DosResetMaxThreshold"  Address="0x2003" MeasurementUnit="V" Description="DOS Reset Max Threshold"/>
+                    <local:ResolversParam x:Name="DosResetMinThreshold"  Address="0x2004" MeasurementUnit="V" Description="DOS Reset Min Threshold"/>
+                    <local:ResolversParam x:Name="LotHighThreshold"      Address="0x2005" MeasurementUnit="V" Description="LOT High Threshold"/>
+                    <local:ResolversParam x:Name="LotLowThreshold"       Address="0x2006" MeasurementUnit="V" Description="LOT Low Threshold"/>
+                    <local:ResolversParam x:Name="ExcitationFrequency"   Address="0x2007" MeasurementUnit="Hz" Description="Excitation Frequency"/>
                 </DataGrid.Items>
             </DataGrid>
         </StackPanel>
@@ -93,6 +94,7 @@
                     <DataGridComboBoxColumn Header="Value" SelectedItemBinding="{Binding Path=Value}" Width="*" />
                 </DataGrid.Columns>
                 <DataGrid.Items>
+                    <local:RegulatorParam x:Name="OffsetAngle" Description="Offset Angle"/>
                     <local:RegulatorParam x:Name="DesiredAngle" Description="Desired Angle"/>
                     <local:RegulatorParam x:Name="IntegralPart" Description="Integral Part"/>
                     <local:RegulatorParam x:Name="Kp" Description="kp"/>
