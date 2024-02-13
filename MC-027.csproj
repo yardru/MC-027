@@ -11,14 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DBSKT\PWM\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NModbus4" Version="2.1.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageReference Include="ReactiveUI.WPF" Version="19.5.39" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="RegulatorParamChangeDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>
