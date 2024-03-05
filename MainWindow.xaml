@@ -155,45 +155,68 @@
         <GroupBox Header="Tunes Section">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="3*"></ColumnDefinition>
+                    <ColumnDefinition Width="3*"></ColumnDefinition>
+                    <ColumnDefinition Width="0.3*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition></RowDefinition>
                     <RowDefinition></RowDefinition>
                 </Grid.RowDefinitions>
-                <GroupBox Header="Regulator Params" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0">
+                <GroupBox Header="Regulator Params" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0">
                     <DataGrid x:Name="RegulatorParams" CanUserSortColumns="False" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="RegulatorParams_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridTextColumn IsReadOnly="True" Header="Param" Binding="{Binding Path=Description}"/>
                             <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Path=ValueStr}"/>
                         </DataGrid.Columns>
                         <DataGrid.Items>
-                            <local:RegulatorParamFloat Address="0x0100" Description="Desired Angle"/>
-                            <local:RegulatorParamFloat Address="0x0102" Description="Integral Part"/>
-                            <local:RegulatorParamFloat Address="0x0104" Description="kp"/>
-                            <local:RegulatorParamFloat Address="0x0106" Description="ki"/>
-                            <local:RegulatorParamFloat Address="0x0108" Description="kd"/>
-                            <local:RegulatorParamFloat Address="0x010A" Description="dz"/>
-                            <local:RegulatorParamFloat Address="0x010C" Description="tau"/>
-                            <local:RegulatorParamFloat Address="0x010E" Description="Integral Min"/>
-                            <local:RegulatorParamFloat Address="0x0110" Description="Integral Max"/>
-                            <local:RegulatorParamInt   Address="0x0112" Description="PWM Min"/>
-                            <local:RegulatorParamInt   Address="0x0113" Description="PWM Max"/>
-                            <local:RegulatorParamFloat Address="0x0114" Description="Offset Angle"/>
+                            <local:RegulatorParamFloat Address="0x0200" Description="kp"/>
+                            <local:RegulatorParamFloat Address="0x0202" Description="ki"/>
+                            <local:RegulatorParamFloat Address="0x0204" Description="kd"/>
+                            <local:RegulatorParamFloat Address="0x0206" Description="dz"/>
+                            <local:RegulatorParamFloat Address="0x0208" Description="tau"/>
+                            <local:RegulatorParamFloat Address="0x020A" Description="Integral Min"/>
+                            <local:RegulatorParamFloat Address="0x020C" Description="Integral Max"/>
+                            <local:RegulatorParamInt   Address="0x020E" Description="PWM Min"/>
+                            <local:RegulatorParamInt   Address="0x020F" Description="PWM Max"/>
+                            <local:RegulatorParamFloat Address="0x0210" Description="Offset Angle"/>
+                            <local:RegulatorParamFloat Address="0x0212" Description="Mismatch Angle"/>
                         </DataGrid.Items>
                     </DataGrid>
                 </GroupBox>
-                <GroupBox Grid.Column="1" Grid.Row="0" Header="Regulator Mode">
-                    <ComboBox x:Name="RegulatorMode" VerticalContentAlignment="Center" SelectionChanged="RegulatorMode_SelectionChanged">
-                        <TextBlock>Internal Regulator</TextBlock>
-                        <TextBlock>Reading DBSKT Angle</TextBlock>
-                        <TextBlock>Direct Output Control</TextBlock>
-                        <TextBlock>External Regulator</TextBlock>
-                    </ComboBox>
-                </GroupBox>
-                <ToggleButton x:Name="EnableTunesButton" Click="EnableTunesButton_Click" Content="Enable Tunes" Grid.Row="0" Grid.Column="2" Margin="5,5,5,5" FontSize="16"/>
+                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
+                    <GroupBox Grid.Column="1" Grid.Row="0" Header="Regulator Mode">
+                        <ComboBox x:Name="RegulatorMode" VerticalContentAlignment="Center" SelectionChanged="RegulatorMode_SelectionChanged">
+                            <TextBlock>Internal Regulator</TextBlock>
+                            <TextBlock>Reading DBSKT Angle</TextBlock>
+                            <TextBlock>Direct Output Control</TextBlock>
+                            <TextBlock>External Regulator</TextBlock>
+                        </ComboBox>
+                    </GroupBox>
+                    <GroupBox Grid.Column="1" Grid.Row="1" Header="Resolvers Mode">
+                        <ComboBox x:Name="ResolversMode" VerticalContentAlignment="Center" SelectionChanged="ResolversMode_SelectionChanged">
+                            <TextBlock>Master Resolver Only</TextBlock>
+                            <TextBlock>Master than Slave</TextBlock>
+                            <TextBlock>Master and Slave Match</TextBlock>
+                        </ComboBox>
+                    </GroupBox>
+                </StackPanel>
+                <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="0">
+                    <ToggleButton x:Name="EnableTunesButton" Click="EnableTunesButton_Click" Content="Enable Tunes" Grid.Row="0" Grid.Column="2" Margin="5,5,5,5" FontSize="16" HorizontalAlignment="Center"/>
+                    <GroupBox Grid.Column="2" Grid.Row="1" Header="Master Resolver" HorizontalAlignment="Center">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <RadioButton x:Name="MasterResolver1" GroupName="MasterResolver" Content="Resolver 1" Grid.Row="0" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
+                            <RadioButton x:Name="MasterResolver2" GroupName="MasterResolver" Content="Resolver 2" Grid.Row="1" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
+                        </Grid>
+                    </GroupBox>
+                </StackPanel>
                 <GroupBox Header="Resolvers Params" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
                     <DataGrid x:Name="ResolversParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" CanUserSortColumns="False" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="ResolversParams_MouseDoubleClick">
                         <DataGrid.Columns>

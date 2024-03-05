@@ -145,8 +145,7 @@ namespace MC_027
 
             try
             {
-                ushort[] registers = master.ReadInputRegisters(SlaveAddress,
-                    (ushort)REGISTER.REGULATOR_PARAMS_START + (ushort)REGISTER.REGULATOR_PARAMS_READ_OFFSET,
+                ushort[] registers = master.ReadInputRegisters(SlaveAddress, (ushort)REGISTER.REGULATOR_PARAMS_START,
                     REGISTER.REGULATOR_PARAMS_END - REGISTER.REGULATOR_PARAMS_START + 1);
                 foreach (RegulatorParam param in regulatorParams)
                 {
@@ -204,7 +203,7 @@ namespace MC_027
         {
             try
             {
-                ushort[] registers = master.ReadHoldingRegisters(SlaveAddress,
+                ushort[] registers = master.ReadInputRegisters(SlaveAddress,
                    (ushort)REGISTER.OUTPUT_CONFIG, 1);
                 OUTPUT_CONFIG config = (OUTPUT_CONFIG)registers[0];
                 moduleInfo.OutputConfig = config;
@@ -259,12 +258,14 @@ namespace MC_027
             ModuleInfo moduleInfo = obj as ModuleInfo;
             try
             {
-                ushort[] registers = master.ReadHoldingRegisters(SlaveAddress, (ushort)REGISTER.STATUS, 1);
+                ushort[] registers = master.ReadInputRegisters(SlaveAddress, (ushort)REGISTER.STATUS, 2);
                 moduleInfo.Status = (STATUS)registers[0];
+                moduleInfo.Service = (SERVICE)registers[1];
 
-                registers = master.ReadInputRegisters(SlaveAddress, 0x100, 20);
-                moduleInfo.Angle1 = UintToFloat(((uint)registers[0] << 16) | registers[1]);
-                moduleInfo.Angle2 = UintToFloat(((uint)registers[2] << 16) | registers[3]);
+                registers = master.ReadInputRegisters(SlaveAddress, (ushort)REGISTER.REGULATOR_VALUES_START,
+                    REGISTER.REGULATOR_VALUES_END - REGISTER.REGULATOR_VALUES_START + 1);
+                moduleInfo.Angle1 = UintToFloat(((uint)registers[3] << 16) | registers[4]);
+                moduleInfo.Angle2 = UintToFloat(((uint)registers[5] << 16) | registers[6]);
             }
             catch (Exception exception)
             {
@@ -280,13 +281,14 @@ namespace MC_027
 
         private enum REGISTER : ushort
         {
-            OUTPUT_CONFIG = 0x0200,
-            STATUS = 0x0201,
+            OUTPUT_CONFIG = 0x0214,
+            STATUS = 0x0215,
             MODULE_INFO_START = 0x0280,
             MODULE_INFO_END = 0x028E,
-            REGULATOR_PARAMS_READ_OFFSET = 4,
-            REGULATOR_PARAMS_START = 0x0100,
-            REGULATOR_PARAMS_END = 0x0115,
+            REGULATOR_VALUES_START = 0x0100,
+            REGULATOR_VALUES_END = 0x0108,
+            REGULATOR_PARAMS_START = 0x0200,
+            REGULATOR_PARAMS_END = 0x0213,
             RESOLVERS_PARAMS_START = 0x2000,
             RESOLVERS_PARAMS_END = 0x2007,
             TUNES_ENABLE = 0x1000,

@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using static MC_027.ModuleInfo;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace MC_027
@@ -38,10 +39,15 @@ namespace MC_027
         private const byte maxModbusAddress = 247;
 
         private readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-        private readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
         private void SubscribeIndicator(Ellipse indicator, ModuleInfo.STATUS statusFlag, Brush brush)
         {
             moduleInfo.WhenAnyValue(x => x.Status).Select(status => status.HasFlag(statusFlag) ? brush : null).
+                Subscribe(brush => indicator.Dispatcher.Invoke(() => indicator.Fill = brush));
+        }
+        private readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+        private void SubscribeIndicator(Ellipse indicator, ModuleInfo.SERVICE serviceFlag, Brush brush)
+        {
+            moduleInfo.WhenAnyValue(x => x.Service).Select(status => status.HasFlag(serviceFlag) ? brush : null).
                 Subscribe(brush => indicator.Dispatcher.Invoke(() => indicator.Fill = brush));
         }
 
@@ -55,6 +61,9 @@ namespace MC_027
             return angle.ToString();
         }
         public int RegulatorModeIndex { set; get; }
+        public int ResolversModeIndex { set; get; }
+        public bool IsMasterResolver1 { set; get; }
+        public bool IsMasterResolver2 { set; get; }
         public bool IsNotConnected { set; get; }
 
         private void Reset()
@@ -88,6 +97,9 @@ namespace MC_027
             ResolversParams.SetBinding(IsEnabledProperty, tunesBinding);
             RegulatorParams.SetBinding(IsEnabledProperty, tunesBinding);
             RegulatorMode.SetBinding(IsEnabledProperty, tunesBinding);
+            ResolversMode.SetBinding(IsEnabledProperty, tunesBinding);
+            MasterResolver1.SetBinding(IsEnabledProperty, tunesBinding);
+            MasterResolver2.SetBinding(IsEnabledProperty, tunesBinding);
 
             SubscribeIndicator(Resolver1ExtremeSignalIndicator, ModuleInfo.STATUS.RESOLVER_1_EXTREME_SYGNAL, RedBrush);
             SubscribeIndicator(Resolver1WeakSignalIndicator, ModuleInfo.STATUS.RESOLVER_1_WEAK_SYGNAL, RedBrush);
@@ -95,12 +107,12 @@ namespace MC_027
             SubscribeIndicator(Resolver2ExtremeSignalIndicator, ModuleInfo.STATUS.RESOLVER_2_EXTREME_SYGNAL, RedBrush);
             SubscribeIndicator(Resolver2WeakSignalIndicator, ModuleInfo.STATUS.RESOLVER_2_WEAK_SYGNAL, RedBrush);
             SubscribeIndicator(Resolver2NoSignalIndicator, ModuleInfo.STATUS.RESOLVER_2_NO_SYGNAL, RedBrush);
-            SubscribeIndicator(Break1Indicator, ModuleInfo.STATUS.PWM_BREAK1, RedBrush);
-            SubscribeIndicator(Break2Indicator, ModuleInfo.STATUS.PWM_BREAK2, RedBrush);
-            SubscribeIndicator(KeyboardUpIndicator, ModuleInfo.STATUS.KEYBOARD_UP, GreenBrush);
-            SubscribeIndicator(KeyboardDownIndicator, ModuleInfo.STATUS.KEYBOARD_DOWN, GreenBrush);
-            SubscribeIndicator(KeyboardEnterIndicator, ModuleInfo.STATUS.KEYBOARD_ENTER, GreenBrush);
-            moduleInfo.WhenAnyValue(x => x.Status).Select(status => status.HasFlag(ModuleInfo.STATUS.TEST_IND)).Subscribe(state => TestIndicationState = state);
+            SubscribeIndicator(Break1Indicator, ModuleInfo.STATUS.BREAK1, RedBrush);
+            SubscribeIndicator(Break2Indicator, ModuleInfo.STATUS.BREAK2, RedBrush);
+            SubscribeIndicator(KeyboardUpIndicator, ModuleInfo.SERVICE.KEYBOARD_UP, GreenBrush);
+            SubscribeIndicator(KeyboardDownIndicator, ModuleInfo.SERVICE.KEYBOARD_DOWN, GreenBrush);
+            SubscribeIndicator(KeyboardEnterIndicator, ModuleInfo.SERVICE.KEYBOARD_ENTER, GreenBrush);
+            moduleInfo.WhenAnyValue(x => x.Service).Select(service => service.HasFlag(ModuleInfo.SERVICE.TEST_IND)).Subscribe(state => TestIndicationState = state);
             moduleInfo.WhenAnyValue(x => x.Status).Select(status => status.HasFlag(ModuleInfo.STATUS.TUNES_ENABLED)).Subscribe(state => TunesEnabledState = state);
 
             moduleInfo.WhenAnyValue(x => x.Angle1).Select(angle => AngleToStr(angle)).Subscribe(angleStr => Resolver1AngleStr = angleStr);
@@ -113,8 +125,17 @@ namespace MC_027
             FirmwareVersionTextBlock.SetBinding(TextBlock.TextProperty, new Binding("FirmwareVersion") { Source = moduleInfo });
             UniqueIdTextBlock.SetBinding(TextBlock.TextProperty, new Binding("UniqueId") { Source = moduleInfo });
 
-            moduleInfo.WhenAnyValue(x => x.OutputConfig).Select(config => (int)config >> 14).Subscribe(index => RegulatorModeIndex = index);
+            moduleInfo.WhenAnyValue(x => x.OutputConfig).Subscribe(config =>
+            {
+                RegulatorModeIndex = (int)config >> (int)OUTPUT_CONFIG.REGULATOR_MODE_OFFSET;
+                ResolversModeIndex = (int)config >> (int)OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET;
+                IsMasterResolver1 = !config.HasFlag(OUTPUT_CONFIG.MASTER_RESOLVER);
+                IsMasterResolver2 = config.HasFlag(OUTPUT_CONFIG.MASTER_RESOLVER);
+            });
             RegulatorMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("RegulatorModeIndex") { Mode = BindingMode.OneWay });
+            ResolversMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("ResolversModeIndex") { Mode = BindingMode.OneWay });
+            MasterResolver1.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver1") { Mode = BindingMode.OneWay });
+            MasterResolver2.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver2") { Mode = BindingMode.OneWay });
         }
 
         public MainWindow()
@@ -155,7 +176,7 @@ namespace MC_027
 
         private void TestIndicationButton_Click(object sender, RoutedEventArgs e)
         {
-            modbus.TestIndication(!moduleInfo.Status.HasFlag(ModuleInfo.STATUS.TEST_IND));
+            modbus.TestIndication(!moduleInfo.Service.HasFlag(ModuleInfo.SERVICE.TEST_IND));
         }
 
         private void CalibrateKeyboardButton_Click(object sender, RoutedEventArgs e)
@@ -186,12 +207,60 @@ namespace MC_027
             modbus.ReadRegulatorParams(RegulatorParams.Items);
         }
 
-        private bool skip = false;
+        private bool isRegulatorModeChanged = false;
         private void RegulatorMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (skip)
+            if (isRegulatorModeChanged)
             {
-                skip = false;
+                isRegulatorModeChanged = false;
+                return;
+            }
+
+            if (!modbus.IsConnected)
+                return;
+
+            ModuleInfo.OUTPUT_CONFIG newConfig = moduleInfo.OutputConfig;
+            newConfig &= ~ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE;
+            newConfig |= (ModuleInfo.OUTPUT_CONFIG)(RegulatorMode.SelectedIndex << (int)ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE_OFFSET);
+            modbus.SetOutputConfig(newConfig);
+            modbus.ReadOutputConfig(moduleInfo);
+            if (!moduleInfo.OutputConfig.Equals(newConfig))
+            {
+                isRegulatorModeChanged = true;
+                RegulatorMode.SelectedIndex = RegulatorModeIndex;
+            }
+        }
+
+        private bool isResolversModeChanged = false;
+        private void ResolversMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (isResolversModeChanged)
+            {
+                isResolversModeChanged = false;
+                return;
+            }
+
+            if (!modbus.IsConnected)
+                return;
+
+            ModuleInfo.OUTPUT_CONFIG newConfig = moduleInfo.OutputConfig;
+            newConfig &= ~ModuleInfo.OUTPUT_CONFIG.RESOLVERS_MODE;
+            newConfig |= (ModuleInfo.OUTPUT_CONFIG)(ResolversMode.SelectedIndex << (int)ModuleInfo.OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET);
+            modbus.SetOutputConfig(newConfig);
+            modbus.ReadOutputConfig(moduleInfo);
+            if (!moduleInfo.OutputConfig.Equals(newConfig))
+            {
+                isResolversModeChanged = true;
+                ResolversMode.SelectedIndex = ResolversModeIndex;
+            }
+        }
+
+        private bool isMasterResolverChanged = false;
+        private void MasterResolver_Checked(object sender, RoutedEventArgs e)
+        {
+            if (isMasterResolverChanged)
+            {
+                isMasterResolverChanged = false;
                 return;
             }
 
@@ -205,7 +274,7 @@ namespace MC_027
             modbus.ReadOutputConfig(moduleInfo);
             if (!moduleInfo.OutputConfig.Equals(newConfig))
             {
-                skip = true;
+                isMasterResolverChanged = true;
                 RegulatorMode.SelectedIndex = RegulatorModeIndex;
             }
         }
