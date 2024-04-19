@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 
 namespace MC_027
 {
-    [AddINotifyPropertyChangedInterface]
-    public class RegulatorParam
+    public class RegulatorParam : Param
     {
-        public string? Description { get; set; }
-        public ushort Address { get; set; }
         public virtual string ValueStr { get; set; }
     }
 

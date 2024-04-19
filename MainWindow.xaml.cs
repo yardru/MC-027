@@ -54,6 +54,7 @@ namespace MC_027
         public string StartStopButtonStr { set; get; }
         public bool TestIndicationState { set; get; }
         public bool TunesEnabledState { set; get; }
+        public bool PwmEnabledState { set; get; }
         public string Resolver1AngleStr { set; get; } = string.Empty;
         public string Resolver2AngleStr { set; get; } = string.Empty;
         private static string AngleToStr(float angle)
@@ -62,6 +63,7 @@ namespace MC_027
         }
         public int RegulatorModeIndex { set; get; }
         public int ResolversModeIndex { set; get; }
+        public int AngleOffsetIndex { set; get; }
         public bool IsMasterResolver1 { set; get; }
         public bool IsMasterResolver2 { set; get; }
         public bool IsNotConnected { set; get; }
@@ -82,7 +84,7 @@ namespace MC_027
             EnableTunesButton.SetBinding(IsEnabledProperty, connectionBindnig);
             modbus.WhenAnyValue(x => x.IsConnected).Subscribe(isConnected =>
             {
-                StartStopButtonStr = isConnected ? "Stop" : "Start";
+                StartStopButtonStr = isConnected ? "Стоп" : "Старт";
                 IsNotConnected = !isConnected;
                 if (!isConnected)
                     Reset();
@@ -95,12 +97,16 @@ namespace MC_027
 
             Binding tunesBinding = new Binding("TunesEnabledState") { Mode = BindingMode.OneWay };
             ResolversParams.SetBinding(IsEnabledProperty, tunesBinding);
+            RegulatorValues.SetBinding(IsEnabledProperty, tunesBinding);
             RegulatorParams.SetBinding(IsEnabledProperty, tunesBinding);
             RegulatorMode.SetBinding(IsEnabledProperty, tunesBinding);
             ResolversMode.SetBinding(IsEnabledProperty, tunesBinding);
+            EnablePwmButton.SetBinding(IsEnabledProperty, tunesBinding);
             MasterResolver1.SetBinding(IsEnabledProperty, tunesBinding);
             MasterResolver2.SetBinding(IsEnabledProperty, tunesBinding);
+            AngleOffset.SetBinding(IsEnabledProperty, tunesBinding);
 
+            SubscribeIndicator(NeedToReloadIndicator, ModuleInfo.STATUS.NEED_TO_RELOAD, RedBrush);
             SubscribeIndicator(Resolver1ExtremeSignalIndicator, ModuleInfo.STATUS.RESOLVER_1_EXTREME_SYGNAL, RedBrush);
             SubscribeIndicator(Resolver1WeakSignalIndicator, ModuleInfo.STATUS.RESOLVER_1_WEAK_SYGNAL, RedBrush);
             SubscribeIndicator(Resolver1NoSignalIndicator, ModuleInfo.STATUS.RESOLVER_1_NO_SYGNAL, RedBrush);
@@ -115,6 +121,9 @@ namespace MC_027
             moduleInfo.WhenAnyValue(x => x.Service).Select(service => service.HasFlag(ModuleInfo.SERVICE.TEST_IND)).Subscribe(state => TestIndicationState = state);
             moduleInfo.WhenAnyValue(x => x.Status).Select(status => status.HasFlag(ModuleInfo.STATUS.TUNES_ENABLED)).Subscribe(state => TunesEnabledState = state);
 
+            moduleInfo.WhenAnyValue(x => x.DesiredAngle).Subscribe(angle => (RegulatorValues.Items[0] as RegulatorParamFloat).Value = angle);
+            moduleInfo.WhenAnyValue(x => x.PwmValue).Subscribe(value => (RegulatorValues.Items[1] as RegulatorParamInt).Value = value);
+
             moduleInfo.WhenAnyValue(x => x.Angle1).Select(angle => AngleToStr(angle)).Subscribe(angleStr => Resolver1AngleStr = angleStr);
             moduleInfo.WhenAnyValue(x => x.Angle2).Select(angle => AngleToStr(angle)).Subscribe(angleStr => Resolver2AngleStr = angleStr);
             Resolver1Angle.SetBinding(TextBlock.TextProperty, new Binding("Resolver1AngleStr"));
@@ -124,18 +133,22 @@ namespace MC_027
             EnableTunesButton.SetBinding(ToggleButton.IsCheckedProperty, new Binding("TunesEnabledState") { Mode = BindingMode.OneWay });
             FirmwareVersionTextBlock.SetBinding(TextBlock.TextProperty, new Binding("FirmwareVersion") { Source = moduleInfo });
             UniqueIdTextBlock.SetBinding(TextBlock.TextProperty, new Binding("UniqueId") { Source = moduleInfo });
+            EnablePwmButton.SetBinding(ToggleButton.IsCheckedProperty, new Binding("PwmEnabledState") { Mode = BindingMode.OneWay });
 
             moduleInfo.WhenAnyValue(x => x.OutputConfig).Subscribe(config =>
             {
-                RegulatorModeIndex = (int)config >> (int)OUTPUT_CONFIG.REGULATOR_MODE_OFFSET;
-                ResolversModeIndex = (int)config >> (int)OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET;
+                RegulatorModeIndex = (int)(config & OUTPUT_CONFIG.REGULATOR_MODE) >> (int)OUTPUT_CONFIG.REGULATOR_MODE_OFFSET;
+                ResolversModeIndex = (int)(config & OUTPUT_CONFIG.RESOLVERS_MODE) >> (int)OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET;
+                AngleOffsetIndex = (((int)(config & OUTPUT_CONFIG.ANGLE_OFFSET) >> (int)OUTPUT_CONFIG.ANGLE_OFFSET_OFFSET) + 1) / 2;
                 IsMasterResolver1 = !config.HasFlag(OUTPUT_CONFIG.MASTER_RESOLVER);
                 IsMasterResolver2 = config.HasFlag(OUTPUT_CONFIG.MASTER_RESOLVER);
+                PwmEnabledState = config.HasFlag(OUTPUT_CONFIG.PWM_ENABLE);
             });
-            RegulatorMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("RegulatorModeIndex") { Mode = BindingMode.OneWay });
-            ResolversMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("ResolversModeIndex") { Mode = BindingMode.OneWay });
-            MasterResolver1.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver1") { Mode = BindingMode.OneWay });
-            MasterResolver2.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver2") { Mode = BindingMode.OneWay });
+            RegulatorMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("RegulatorModeIndex"));
+            ResolversMode.SetBinding(ComboBox.SelectedIndexProperty, new Binding("ResolversModeIndex"));
+            AngleOffset.SetBinding(ComboBox.SelectedIndexProperty, new Binding("AngleOffsetIndex"));
+            MasterResolver1.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver1"));
+            MasterResolver2.SetBinding(RadioButton.IsCheckedProperty, new Binding("IsMasterResolver2"));
         }
 
         public MainWindow()
@@ -143,12 +156,14 @@ namespace MC_027
             modbus = new ModbusInterface();
             moduleInfo = new ModuleInfo();
 
-            InitializeComponent();
+            //TryFindResource()
 
+
+            InitializeComponent();
             ComPort.ItemsSource = SerialPort.GetPortNames();
             ComPort.SelectedIndex = 0;
             ModbusSpeed.ItemsSource = baudRates;
-            ModbusSpeed.SelectedIndex = 2; // 38400
+            ModbusSpeed.SelectedIndex = 5; // 230400
             ModbusAddress.Items.Add("0 - Broadcast Exchange");
             for (int i = 1; i <= maxModbusAddress; i++)
                 ModbusAddress.Items.Add(i);
@@ -207,76 +222,77 @@ namespace MC_027
             modbus.ReadRegulatorParams(RegulatorParams.Items);
         }
 
-        private bool isRegulatorModeChanged = false;
+        private void EnablePwmButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!modbus.IsConnected)
+                return;
+
+            moduleInfo.OutputConfig ^= ModuleInfo.OUTPUT_CONFIG.PWM_ENABLE;
+            modbus.SetOutputConfig(moduleInfo.OutputConfig);
+            modbus.ReadOutputConfig(moduleInfo);
+        }
+
         private void RegulatorMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (isRegulatorModeChanged)
-            {
-                isRegulatorModeChanged = false;
-                return;
-            }
-
             if (!modbus.IsConnected)
                 return;
 
-            ModuleInfo.OUTPUT_CONFIG newConfig = moduleInfo.OutputConfig;
-            newConfig &= ~ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE;
-            newConfig |= (ModuleInfo.OUTPUT_CONFIG)(RegulatorMode.SelectedIndex << (int)ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE_OFFSET);
-            modbus.SetOutputConfig(newConfig);
-            modbus.ReadOutputConfig(moduleInfo);
-            if (!moduleInfo.OutputConfig.Equals(newConfig))
+            RegulatorMode.SelectionChanged -= RegulatorMode_SelectionChanged;
             {
-                isRegulatorModeChanged = true;
-                RegulatorMode.SelectedIndex = RegulatorModeIndex;
+                moduleInfo.OutputConfig = (moduleInfo.OutputConfig & ~ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE) |
+                    (ModuleInfo.OUTPUT_CONFIG)(RegulatorMode.SelectedIndex << (int)ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE_OFFSET);
+                modbus.SetOutputConfig(moduleInfo.OutputConfig);
+                modbus.ReadOutputConfig(moduleInfo);
             }
+            RegulatorMode.SelectionChanged += RegulatorMode_SelectionChanged;
         }
 
-        private bool isResolversModeChanged = false;
         private void ResolversMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (isResolversModeChanged)
-            {
-                isResolversModeChanged = false;
-                return;
-            }
-
             if (!modbus.IsConnected)
                 return;
 
-            ModuleInfo.OUTPUT_CONFIG newConfig = moduleInfo.OutputConfig;
-            newConfig &= ~ModuleInfo.OUTPUT_CONFIG.RESOLVERS_MODE;
-            newConfig |= (ModuleInfo.OUTPUT_CONFIG)(ResolversMode.SelectedIndex << (int)ModuleInfo.OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET);
-            modbus.SetOutputConfig(newConfig);
-            modbus.ReadOutputConfig(moduleInfo);
-            if (!moduleInfo.OutputConfig.Equals(newConfig))
+            ResolversMode.SelectionChanged -= ResolversMode_SelectionChanged;
             {
-                isResolversModeChanged = true;
-                ResolversMode.SelectedIndex = ResolversModeIndex;
+                moduleInfo.OutputConfig = (moduleInfo.OutputConfig & ~OUTPUT_CONFIG.RESOLVERS_MODE) |
+                (OUTPUT_CONFIG)(ResolversMode.SelectedIndex << (int)OUTPUT_CONFIG.RESOLVERS_MODE_OFFSET);
+                modbus.SetOutputConfig(moduleInfo.OutputConfig);
+                modbus.ReadOutputConfig(moduleInfo);
             }
+            ResolversMode.SelectionChanged += ResolversMode_SelectionChanged;
         }
 
-        private bool isMasterResolverChanged = false;
-        private void MasterResolver_Checked(object sender, RoutedEventArgs e)
+        private void AngleOffset_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (isMasterResolverChanged)
-            {
-                isMasterResolverChanged = false;
-                return;
-            }
-
             if (!modbus.IsConnected)
                 return;
 
-            ModuleInfo.OUTPUT_CONFIG newConfig = moduleInfo.OutputConfig;
-            newConfig &= ~ModuleInfo.OUTPUT_CONFIG.REGULATOR_MODE;
-            newConfig |= (ModuleInfo.OUTPUT_CONFIG)(RegulatorMode.SelectedIndex << 14);
-            modbus.SetOutputConfig(newConfig);
-            modbus.ReadOutputConfig(moduleInfo);
-            if (!moduleInfo.OutputConfig.Equals(newConfig))
+            AngleOffset.SelectionChanged -= AngleOffset_SelectionChanged;
             {
-                isMasterResolverChanged = true;
-                RegulatorMode.SelectedIndex = RegulatorModeIndex;
+                int angleOffsetConfig = AngleOffset.SelectedIndex;
+                if (angleOffsetConfig > 0)
+                    angleOffsetConfig++;
+                moduleInfo.OutputConfig = (moduleInfo.OutputConfig & ~OUTPUT_CONFIG.ANGLE_OFFSET) |
+                    (OUTPUT_CONFIG)(angleOffsetConfig << (int)OUTPUT_CONFIG.ANGLE_OFFSET_OFFSET);
+                modbus.SetOutputConfig(moduleInfo.OutputConfig);
+                modbus.ReadOutputConfig(moduleInfo);
             }
+            AngleOffset.SelectionChanged += AngleOffset_SelectionChanged;
+        }
+
+        private void MasterResolver_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!modbus.IsConnected)
+                return;
+
+            RadioButton another = sender == MasterResolver1 ? MasterResolver2 : MasterResolver1;
+            moduleInfo.OutputConfig ^= ModuleInfo.OUTPUT_CONFIG.MASTER_RESOLVER;
+            modbus.SetOutputConfig(moduleInfo.OutputConfig);
+            another.Checked -= MasterResolver_Checked;
+            {
+                modbus.ReadOutputConfig(moduleInfo);
+            }
+            another.Checked += MasterResolver_Checked;
         }
 
         private void ResolversParams_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -308,7 +324,7 @@ namespace MC_027
                 return;
             }
 
-            var param = RegulatorParams.SelectedValue as RegulatorParam;
+            var param = (sender as DataGrid)?.SelectedValue as RegulatorParam;
             RegulatorParamChangeDialog dialog = new RegulatorParamChangeDialog(param)
             {
                 Owner = this
@@ -317,7 +333,10 @@ namespace MC_027
             if (dialog.ShowDialog() == true)
             {
                 modbus.WriteRegulatorParam(param);
-                modbus.ReadRegulatorParams(RegulatorParams.Items);
+                if (sender == RegulatorParams)
+                    modbus.ReadRegulatorParams(RegulatorParams.Items);
+                if (sender == RegulatorValues)
+                    modbus.ReadRegulatorValues(RegulatorValues.Items);
             }
         }
     }

@@ -4,239 +4,262 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MC_027"
+        xmlns:col="clr-namespace:System.Collections;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MC-027 Test Application"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
-
-    <StackPanel Orientation="Vertical">
-        <!-- Main section -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition></ColumnDefinition>
-                <ColumnDefinition></ColumnDefinition>
-                <ColumnDefinition></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <!-- Resolvers section -->
-            <GroupBox Grid.Column="0" Header="Resolvers">
-                <StackPanel VerticalAlignment="Center">
-                    <GroupBox Header="Resolver 1">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="3*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="Resolver1Angle" Text="-" Background="Gainsboro" TextAlignment="Center"/>
-                            <Ellipse x:Name="Resolver1NoSignalIndicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="1" Text="No Signal" VerticalAlignment="Center"/>
-                            <Ellipse x:Name="Resolver1WeakSignalIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="2" Text="Weak Signal" VerticalAlignment="Center"/>
-                            <Ellipse x:Name="Resolver1ExtremeSignalIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="3" Text="Extreme Signal" VerticalAlignment="Center"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="Resolver 2">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="3*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="Resolver2Angle" Text="-" Background="Gainsboro" TextAlignment="Center"/>
-                            <Ellipse x:Name="Resolver2NoSignalIndicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="1" Text="No Signal" VerticalAlignment="Center"/>
-                            <Ellipse x:Name="Resolver2WeakSignalIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="2" Text="Weak Signal" VerticalAlignment="Center"/>
-                            <Ellipse x:Name="Resolver2ExtremeSignalIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                            <TextBlock Grid.Column="1" Grid.Row="3" Text="Extreme Signal" VerticalAlignment="Center"/>
-                        </Grid>
-                    </GroupBox>
-                </StackPanel>
-            </GroupBox>
-
-            <StackPanel Grid.Column="1" Orientation="Vertical">
-                <!-- Menu section -->
-                <GroupBox Header="Main Menu" VerticalAlignment="Top">
-                    <Grid Grid.Column="1" Grid.Row="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <ToggleButton x:Name="StartStopButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Content="Start" Click="StartStopButton_Click" MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" FontWeight="Bold" FontSize="36"/>
-                        <GroupBox Grid.Column="1" Grid.Row="0" Header="Modbus Address">
-                            <StackPanel Orientation="Vertical">
-                                <!-- Added fantom ComboBox to prevent window resizing -->
-                                <ComboBox Height="0" SelectedIndex="0" ItemsSource="{Binding Path=Items, ElementName=ModbusAddress}"/>
-                                <ComboBox x:Name="ModbusAddress" SelectionChanged="ModbusAddress_SelectionChanged"/>
-                            </StackPanel>
-                        </GroupBox>
-                        <GroupBox Grid.Column="1" Grid.Row="1" Header="Modbus Speed">
-                            <ComboBox x:Name="ModbusSpeed" SelectionChanged="ModbusSpeed_SelectionChanged"/>
-                        </GroupBox>
-                        <GroupBox Grid.Column="1" Grid.Row="2" Header="COM-Port">
-                            <ComboBox x:Name="ComPort" SelectionChanged="ComPort_SelectionChanged"/>
-                        </GroupBox>
-                    </Grid>
-                </GroupBox>
-                <!-- Info section -->
-                <GroupBox Header="Firmware Version">
-                    <TextBlock x:Name="FirmwareVersionTextBlock" TextAlignment="Center"/>
-                </GroupBox>
-                <GroupBox Header="Unique ID">
-                    <TextBlock x:Name="UniqueIdTextBlock" TextAlignment="Center"/>
-                </GroupBox>
-            </StackPanel>
-            <Grid Grid.Column="2" >
-                <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-                <!-- PWM State section -->
-                <GroupBox Grid.Row="0" Header="PWM State">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="3*"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <Ellipse x:Name="Break1Indicator" Grid.Column="0" Grid.Row="0" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                        <TextBlock Grid.Column="1" Grid.Row="0" Text="Break1" VerticalAlignment="Center"/>
-                        <Ellipse x:Name="Break2Indicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                        <TextBlock Grid.Column="1" Grid.Row="1" Text="Break2" VerticalAlignment="Center"/>
-                    </Grid>
-                </GroupBox>
-                <!-- Test interface section -->
-                <GroupBox Grid.Row="1" Header="Interface">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="3*"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="2*"></RowDefinition>
-                            <RowDefinition Height="2*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <ToggleButton x:Name="TestIndicationButton" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Click="TestIndicationButton_Click" Content="Test&#x0a;Indication" FontStyle="Italic"/>
-                        <Button x:Name="CalibrateKeyboardButton" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Click="CalibrateKeyboardButton_Click" Content="Calibrate&#x0a;Keyboard" FontStyle="Italic"/>
-                        <Ellipse x:Name="KeyboardUpIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                        <TextBlock Grid.Column="1" Grid.Row="2" Text="Up" VerticalAlignment="Center"/>
-                        <Ellipse x:Name="KeyboardDownIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                        <TextBlock Grid.Column="1" Grid.Row="3" Text="Down" VerticalAlignment="Center"/>
-                        <Ellipse x:Name="KeyboardEnterIndicator" Grid.Column="0" Grid.Row="4" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
-                        <TextBlock Grid.Column="1" Grid.Row="4" Text="Enter" VerticalAlignment="Center"/>
-                    </Grid>
-                </GroupBox>
-            </Grid>
-        </Grid>
+    <DockPanel LastChildFill="True">
         <!-- Tunes section -->
-        <GroupBox Header="Tunes Section">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"></ColumnDefinition>
-                    <ColumnDefinition Width="3*"></ColumnDefinition>
-                    <ColumnDefinition Width="0.3*"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-                <GroupBox Header="Regulator Params" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0">
-                    <DataGrid x:Name="RegulatorParams" CanUserSortColumns="False" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="RegulatorParams_MouseDoubleClick">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn IsReadOnly="True" Header="Param" Binding="{Binding Path=Description}"/>
-                            <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Path=ValueStr}"/>
-                        </DataGrid.Columns>
-                        <DataGrid.Items>
-                            <local:RegulatorParamFloat Address="0x0200" Description="kp"/>
-                            <local:RegulatorParamFloat Address="0x0202" Description="ki"/>
-                            <local:RegulatorParamFloat Address="0x0204" Description="kd"/>
-                            <local:RegulatorParamFloat Address="0x0206" Description="dz"/>
-                            <local:RegulatorParamFloat Address="0x0208" Description="tau"/>
-                            <local:RegulatorParamFloat Address="0x020A" Description="Integral Min"/>
-                            <local:RegulatorParamFloat Address="0x020C" Description="Integral Max"/>
-                            <local:RegulatorParamInt   Address="0x020E" Description="PWM Min"/>
-                            <local:RegulatorParamInt   Address="0x020F" Description="PWM Max"/>
-                            <local:RegulatorParamFloat Address="0x0210" Description="Offset Angle"/>
-                            <local:RegulatorParamFloat Address="0x0212" Description="Mismatch Angle"/>
-                        </DataGrid.Items>
-                    </DataGrid>
-                </GroupBox>
-                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
-                    <GroupBox Grid.Column="1" Grid.Row="0" Header="Regulator Mode">
-                        <ComboBox x:Name="RegulatorMode" VerticalContentAlignment="Center" SelectionChanged="RegulatorMode_SelectionChanged">
-                            <TextBlock>Internal Regulator</TextBlock>
-                            <TextBlock>Reading DBSKT Angle</TextBlock>
-                            <TextBlock>Direct Output Control</TextBlock>
-                            <TextBlock>External Regulator</TextBlock>
-                        </ComboBox>
+        <GroupBox DockPanel.Dock="Bottom" Header="Настройки модуля">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel Orientation="Vertical">
+                    <GroupBox Header="Задания регулятора" HorizontalAlignment="Center" >
+                        <DataGrid x:Name="RegulatorValues" CanUserSortColumns="False" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="RegulatorParams_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn IsReadOnly="True" Header="Параметр" Binding="{Binding Path=Description}"/>
+                                <DataGridTextColumn IsReadOnly="True" Header="Значение" Binding="{Binding Path=ValueStr}"/>
+                            </DataGrid.Columns>
+                            <DataGrid.Items>
+                                <local:RegulatorParamFloat x:Name="DesiredAngle" Address="0x0100" Description="Текущее задание угла"/>
+                                <local:RegulatorParamInt x:Name="PwmValue" Address="0x0102" Description="Текущее задание ШИМ"/>
+                            </DataGrid.Items>
+                        </DataGrid>
                     </GroupBox>
-                    <GroupBox Grid.Column="1" Grid.Row="1" Header="Resolvers Mode">
-                        <ComboBox x:Name="ResolversMode" VerticalContentAlignment="Center" SelectionChanged="ResolversMode_SelectionChanged">
-                            <TextBlock>Master Resolver Only</TextBlock>
-                            <TextBlock>Master than Slave</TextBlock>
-                            <TextBlock>Master and Slave Match</TextBlock>
-                        </ComboBox>
+                    <GroupBox Header="Параметры регулятора" HorizontalAlignment="Center" >
+                        <DataGrid x:Name="RegulatorParams" CanUserSortColumns="False" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="RegulatorParams_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn IsReadOnly="True" Header="Параметр" Binding="{Binding Path=Description}"/>
+                                <DataGridTextColumn IsReadOnly="True" Header="Значение" Binding="{Binding Path=ValueStr}"/>
+                            </DataGrid.Columns>
+                            <DataGrid.Items>
+                                <local:RegulatorParamFloat Address="0x0200" Description="Коэф. kp"/>
+                                <local:RegulatorParamFloat Address="0x0202" Description="Коэф. ki"/>
+                                <local:RegulatorParamFloat Address="0x0204" Description="Коэф. kd"/>
+                                <local:RegulatorParamFloat Address="0x0206" Description="Коэф. dZ"/>
+                                <local:RegulatorParamFloat Address="0x0208" Description="Коэф. Tau"/>
+                                <local:RegulatorParamFloat Address="0x020A" Description="Нижний предел интегр. сост."/>
+                                <local:RegulatorParamFloat Address="0x020C" Description="Верхний предел интегр. сост."/>
+                                <local:RegulatorParamInt   Address="0x020E" Description="Нижний предел ШИМ"/>
+                                <local:RegulatorParamInt   Address="0x020F" Description="Верхний предел ШИМ"/>
+                                <local:RegulatorParamFloat Address="0x0210" Description="Угол смещения"/>
+                                <local:RegulatorParamFloat Address="0x0212" Description="Угол рассогласования"/>
+                            </DataGrid.Items>
+                        </DataGrid>
                     </GroupBox>
                 </StackPanel>
-                <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="0">
-                    <ToggleButton x:Name="EnableTunesButton" Click="EnableTunesButton_Click" Content="Enable Tunes" Grid.Row="0" Grid.Column="2" Margin="5,5,5,5" FontSize="16" HorizontalAlignment="Center"/>
-                    <GroupBox Grid.Column="2" Grid.Row="1" Header="Master Resolver" HorizontalAlignment="Center">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <RadioButton x:Name="MasterResolver1" GroupName="MasterResolver" Content="Resolver 1" Grid.Row="0" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
-                            <RadioButton x:Name="MasterResolver2" GroupName="MasterResolver" Content="Resolver 2" Grid.Row="1" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
-                        </Grid>
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Vertical">
+                            <GroupBox Header="Режим регулятора">
+                                <StackPanel Orientation="Vertical">
+                                    <!-- Added fantom ComboBox to prevent window resizing -->
+                                    <ComboBox Height="0" SelectedIndex="2" ItemsSource="{Binding Path=Items, ElementName=RegulatorMode}"/>
+                                    <ComboBox x:Name="RegulatorMode" VerticalContentAlignment="Center" SelectionChanged="RegulatorMode_SelectionChanged">
+                                        <TextBlock>Внутренний регулятор</TextBlock>
+                                        <TextBlock>Только чтение угла ДБСКТ</TextBlock>
+                                        <TextBlock>Только прямое управление выходом</TextBlock>
+                                        <TextBlock>Внешний регулятор</TextBlock>
+                                    </ComboBox>
+                                </StackPanel>
+                            </GroupBox>
+                            <GroupBox Header="Режим ДБСКТ">
+                                <ComboBox x:Name="ResolversMode" VerticalContentAlignment="Center" SelectionChanged="ResolversMode_SelectionChanged">
+                                    <TextBlock>Только ведущий датчик</TextBlock>
+                                    <TextBlock>Ведущий датчик с переходом</TextBlock>
+                                    <TextBlock>Одновременный анализ датчиков</TextBlock>
+                                </ComboBox>
+                            </GroupBox>
+                            <GroupBox Header="Cмещение нуля">
+                                <ComboBox x:Name="AngleOffset" VerticalContentAlignment="Center" SelectionChanged="AngleOffset_SelectionChanged">
+                                    <TextBlock>Нет</TextBlock>
+                                    <TextBlock>+120°</TextBlock>
+                                    <TextBlock>-120°</TextBlock>
+                                </ComboBox>
+                            </GroupBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <ToggleButton x:Name="EnableTunesButton" Click="EnableTunesButton_Click" Content="Разрешить&#x0a;изменения" Margin="5,5,5,5" FontSize="16" HorizontalAlignment="Center"/>
+                            <ToggleButton x:Name="EnablePwmButton" Click="EnablePwmButton_Click" Content="Включить ШИМ" Margin="5,5,5,5" FontSize="16" HorizontalAlignment="Center"/>
+                            <GroupBox Grid.Column="2" Grid.Row="1" Header="Ведущий датчик" HorizontalAlignment="Center">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton x:Name="MasterResolver1" GroupName="MasterResolver" Content="Датчик 1" Grid.Row="0" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
+                                    <RadioButton x:Name="MasterResolver2" GroupName="MasterResolver" Content="Датчик 2" Grid.Row="1" VerticalAlignment="Center" Checked="MasterResolver_Checked" />
+                                </Grid>
+                            </GroupBox>
+                        </StackPanel>
+                    </StackPanel>
+                    <GroupBox Header="Параметры ДБСКТ" HorizontalAlignment="Center">
+                        <DataGrid
+                        x:Name="ResolversParams"
+                        AutoGenerateColumns="False"
+                        HorizontalGridLinesBrush="DarkGray"
+                        CanUserSortColumns="False"
+                        RowBackground="LightGray"
+                        AlternatingRowBackground="White"
+                        MouseDoubleClick="ResolversParams_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn IsReadOnly="True" Header="Параметр" Binding="{Binding Path=Description}"/>
+                                <DataGridTextColumn IsReadOnly="True" Header="Датчик 1" Binding="{Binding Path=Value1Str}"/>
+                                <DataGridTextColumn IsReadOnly="True" Header="Датчик 2" Binding="{Binding Path=Value2Str}"/>
+                            </DataGrid.Columns>
+                            <DataGrid.Items>
+                                <local:ResolversParam Address="0x2000" Type="VOLTAGE" Description="LOS Threshold" />
+                                <local:ResolversParam Address="0x2001" Type="VOLTAGE" Description="DOS Overrange Threshold"/>
+                                <local:ResolversParam Address="0x2002" Type="VOLTAGE" Description="DOS Mismatch Threshold"/>
+                                <local:ResolversParam Address="0x2003" Type="VOLTAGE" Description="DOS Reset Max Threshold"/>
+                                <local:ResolversParam Address="0x2004" Type="VOLTAGE" Description="DOS Reset Min Threshold"/>
+                                <local:ResolversParam Address="0x2005" Type="ANGLE" Description="LOT High Threshold"/>
+                                <local:ResolversParam Address="0x2006" Type="ANGLE" Description="LOT Low Threshold"/>
+                                <local:ResolversParam Address="0x2007" Type="FREQUENCY" Description="Excitation Frequency"/>
+                            </DataGrid.Items>
+                        </DataGrid>
                     </GroupBox>
                 </StackPanel>
-                <GroupBox Header="Resolvers Params" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
-                    <DataGrid x:Name="ResolversParams" AutoGenerateColumns="False" HorizontalGridLinesBrush="DarkGray" CanUserSortColumns="False" RowBackground="LightGray" AlternatingRowBackground="White" MouseDoubleClick="ResolversParams_MouseDoubleClick">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn IsReadOnly="True" Header="Param" Binding="{Binding Path=Description}"/>
-                            <DataGridTextColumn IsReadOnly="True" Header="Resolver 1" Binding="{Binding Path=Value1Str}"/>
-                            <DataGridTextColumn IsReadOnly="True" Header="Resolver 2" Binding="{Binding Path=Value2Str}"/>
-                        </DataGrid.Columns>
-                        <DataGrid.Items>
-                            <local:ResolversParam Address="0x2000" Type="VOLTAGE" Description="LOS Threshold" />
-                            <local:ResolversParam Address="0x2001" Type="VOLTAGE" Description="DOS Overrange Threshold"/>
-                            <local:ResolversParam Address="0x2002" Type="VOLTAGE" Description="DOS Mismatch Threshold"/>
-                            <local:ResolversParam Address="0x2003" Type="VOLTAGE" Description="DOS Reset Max Threshold"/>
-                            <local:ResolversParam Address="0x2004" Type="VOLTAGE" Description="DOS Reset Min Threshold"/>
-                            <local:ResolversParam Address="0x2005" Type="ANGLE" Description="LOT High Threshold"/>
-                            <local:ResolversParam Address="0x2006" Type="ANGLE" Description="LOT Low Threshold"/>
-                            <local:ResolversParam Address="0x2007" Type="FREQUENCY" Description="Excitation Frequency"/>
-                        </DataGrid.Items>
-                    </DataGrid>
-                </GroupBox>
-            </Grid>
+            </StackPanel>
         </GroupBox>
-    </StackPanel>
+        
+        <!-- Resolvers section -->
+        <GroupBox DockPanel.Dock="Left" Header="Датчики ДБСКТ">
+            <StackPanel VerticalAlignment="Center">
+                <GroupBox Header="Датчик 1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="Resolver1Angle" Text="-" Background="Gainsboro" TextAlignment="Center"/>
+                        <Ellipse x:Name="Resolver1NoSignalIndicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="1" Text="Нет сигнала" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="Resolver1WeakSignalIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="2" Text="Слабый сигнал" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="Resolver1ExtremeSignalIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="3" Text="Чрезмерный сигнал" VerticalAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Датчик 2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="Resolver2Angle" Text="-" Background="Gainsboro" TextAlignment="Center"/>
+                        <Ellipse x:Name="Resolver2NoSignalIndicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="1" Text="Нет сигнала" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="Resolver2WeakSignalIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="2" Text="Слабый сигнал" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="Resolver2ExtremeSignalIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                        <TextBlock Grid.Column="1" Grid.Row="3" Text="Чрезмерный сигнал" VerticalAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse x:Name="NeedToReloadIndicator" Grid.Column="0" Grid.Row="0" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="Ошибка подключения" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Vertical">
+            <!-- PWM State section -->
+            <GroupBox Grid.Row="0" Header="Состояние ШИМ">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Ellipse x:Name="Break1Indicator" Grid.Column="0" Grid.Row="0" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="Обрыв обмотки 1" VerticalAlignment="Center"/>
+                    <Ellipse x:Name="Break2Indicator" Grid.Column="0" Grid.Row="1" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="Обрыв обмотки 2" VerticalAlignment="Center"/>
+                </Grid>
+            </GroupBox>
+            <!-- Test interface section -->
+            <GroupBox Grid.Row="1" Header="Интерфейс">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" ></ColumnDefinition>
+                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*"></RowDefinition>
+                        <RowDefinition Height="2*"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <ToggleButton x:Name="TestIndicationButton" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Click="TestIndicationButton_Click" Content="    Тест&#x0a;индикации" FontStyle="Italic"/>
+                    <Button x:Name="CalibrateKeyboardButton" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Click="CalibrateKeyboardButton_Click" Content="Калибровка&#x0a;клавиатуры" FontStyle="Italic"/>
+                    <Ellipse x:Name="KeyboardUpIndicator" Grid.Column="0" Grid.Row="2" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="Вверх" VerticalAlignment="Center"/>
+                    <Ellipse x:Name="KeyboardDownIndicator" Grid.Column="0" Grid.Row="3" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="3" Text="Вниз" VerticalAlignment="Center"/>
+                    <Ellipse x:Name="KeyboardEnterIndicator" Grid.Column="0" Grid.Row="4" Stroke="Black" Margin="5,5,5,5" Width="10" Height="10" />
+                    <TextBlock Grid.Column="1" Grid.Row="4" Text="Ввод" VerticalAlignment="Center"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+
+        <!-- Main section -->
+        <StackPanel Orientation="Vertical">
+            <!-- Menu section -->
+            <GroupBox Header="Основное меню">
+                <Grid Grid.Column="1" Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <ToggleButton x:Name="StartStopButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Content="Start" Click="StartStopButton_Click" MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" FontWeight="Bold" FontSize="36"/>
+                    <GroupBox Grid.Column="1" Grid.Row="0" Header="Адрес Modbus">
+                        <StackPanel Orientation="Vertical">
+                            <!-- Added fantom ComboBox to prevent window resizing -->
+                            <ComboBox Height="0" SelectedIndex="0" ItemsSource="{Binding Path=Items, ElementName=ModbusAddress}"/>
+                            <ComboBox x:Name="ModbusAddress" SelectionChanged="ModbusAddress_SelectionChanged"/>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Grid.Column="1" Grid.Row="1" Header="Скорость USART">
+                        <ComboBox x:Name="ModbusSpeed" SelectionChanged="ModbusSpeed_SelectionChanged"/>
+                    </GroupBox>
+                    <GroupBox Grid.Column="1" Grid.Row="2" Header="COM-Порт">
+                        <ComboBox x:Name="ComPort" SelectionChanged="ComPort_SelectionChanged"/>
+                    </GroupBox>
+                </Grid>
+            </GroupBox>
+            <!-- Info section -->
+            <GroupBox Header="Версия прошивки">
+                <TextBlock x:Name="FirmwareVersionTextBlock" TextAlignment="Center"/>
+            </GroupBox>
+            <GroupBox Header="Уникальный ID модуля">
+                <TextBlock x:Name="UniqueIdTextBlock" TextAlignment="Center"/>
+            </GroupBox>
+        </StackPanel>
+    </DockPanel>
 </Window>

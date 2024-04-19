@@ -81,13 +81,13 @@ namespace MC_027
 
         public void Stop()
         {
+            IsConnected = false;
             if (timer != null)
             {
                 timer.Dispose();
                 timer = null;
             }
             port.Close();
-            IsConnected = false;
         }
 
         private static unsafe float UintToFloat(uint value)
@@ -138,60 +138,63 @@ namespace MC_027
             return false;
         }
 
-        public bool ReadRegulatorParams(IEnumerable regulatorParams)
+        public bool ReadParams(IEnumerable paramsToRead, ushort startAddress, ushort numberOfRegisters, bool isInput)
         {
-            if (!IsConnected)
-                return false;
-
             try
             {
-                ushort[] registers = master.ReadInputRegisters(SlaveAddress, (ushort)REGISTER.REGULATOR_PARAMS_START,
-                    REGISTER.REGULATOR_PARAMS_END - REGISTER.REGULATOR_PARAMS_START + 1);
-                foreach (RegulatorParam param in regulatorParams)
+                ushort[] registers = isInput ? master.ReadInputRegisters(SlaveAddress, startAddress, numberOfRegisters) :
+                    master.ReadHoldingRegisters(SlaveAddress, startAddress, numberOfRegisters);
+                foreach (Param param in paramsToRead)
                 {
-                    int i = param.Address - (int)REGISTER.REGULATOR_PARAMS_START;
-                    if (param.GetType().Equals(typeof(RegulatorParamInt)))
-                        (param as RegulatorParamInt).Value = registers[i];
-                    else if (param.GetType().Equals(typeof(RegulatorParamFloat)))
-                        (param as RegulatorParamFloat).Value = UintToFloat((uint)(registers[i] << 16 | registers[i + 1]));
+                    int i = param.Address - startAddress;
+
+                    switch (param)
+                    {
+                        case RegulatorParamInt p:
+                            p.Value = registers[i];
+                            break;
+                        case RegulatorParamFloat p:
+                            p.Value = UintToFloat((uint)(registers[i] << 16 | registers[i + 1]));
+                            break;
+                        case ResolversParam p:
+                            p.Value1 = LoByte(registers[i]);
+                            p.Value2 = HiByte(registers[i]);
+                            break;
+                    }
                 }
             }
             catch (Exception exception)
             {
+                if (!IsConnected)
+                    return false;
+
                 MessageBox.Show(exception.Message);
                 return false;
             }
             return true;
+        }
+
+        public bool ReadRegulatorValues(IEnumerable regulatorValues)
+        {
+            return ReadParams(regulatorValues, (ushort)REGISTER.REGULATOR_VALUES_START,
+                REGISTER.REGULATOR_VALUES_END - REGISTER.REGULATOR_VALUES_START + 1, true);
+        }
+
+        public bool ReadRegulatorParams(IEnumerable regulatorParams)
+        {
+            return ReadParams(regulatorParams, (ushort)REGISTER.REGULATOR_PARAMS_START,
+                REGISTER.REGULATOR_PARAMS_END - REGISTER.REGULATOR_PARAMS_START + 1, true);
+        }
+
+        public bool ReadResolversParams(IEnumerable resolversParams)
+        {
+            return ReadParams(resolversParams, (ushort)REGISTER.RESOLVERS_PARAMS_START,
+                REGISTER.RESOLVERS_PARAMS_END - REGISTER.RESOLVERS_PARAMS_START + 1, false);
         }
 
         public bool WriteResolversParam(ResolversParam param)
         {
             return WriteRegister(param.Address, (ushort)((param.Value2 << 8) | param.Value1));
-        }
-
-        public bool ReadResolversParams(IEnumerable resolversParams)
-        {
-            if (!IsConnected)
-                return false;
-
-            try
-            {
-                ushort[] registers = master.ReadHoldingRegisters(SlaveAddress,
-                    (ushort)REGISTER.RESOLVERS_PARAMS_START,
-                    REGISTER.RESOLVERS_PARAMS_END - REGISTER.RESOLVERS_PARAMS_START + 1);
-                foreach (ResolversParam param in resolversParams)
-                {
-                    int i = param.Address - (int)REGISTER.RESOLVERS_PARAMS_START;
-                    param.Value1 = LoByte(registers[i]);
-                    param.Value2 = HiByte(registers[i]);
-                }
-            }
-            catch (Exception exception)
-            {
-                MessageBox.Show(exception.Message);
-                return false;
-            }
-            return true;
         }
 
         public bool SetOutputConfig(ModuleInfo.OUTPUT_CONFIG OutputConfig)
@@ -210,6 +213,9 @@ namespace MC_027
             }
             catch (Exception exception)
             {
+                if (!IsConnected)
+                    return false;
+
                 Stop();
                 MessageBox.Show(exception.Message);
                 return false;
@@ -235,15 +241,20 @@ namespace MC_027
 
         private bool WriteRegister(ushort address, ushort value)
         {
-            if (!IsConnected)
-                return false;
-
             try
             {
-                master.WriteSingleRegister(SlaveAddress, (ushort)address, value);
+                master.WriteSingleRegister(SlaveAddress, address, value);
             }
             catch (Exception exception)
             {
+                if (!IsConnected)
+                    return false;
+
+                if (address == (ushort)REGISTER.PWM_VALUE)
+                {
+                    MessageBox.Show("Запись значения ШИМ не доступна в данном режиме");
+                    return false;
+                }
                 MessageBox.Show(exception.Message);
                 return false;
             }
@@ -252,9 +263,6 @@ namespace MC_027
 
         private void ReadRegisters(object obj)
         {
-            if (!IsConnected)
-                return;
-
             ModuleInfo moduleInfo = obj as ModuleInfo;
             try
             {
@@ -264,11 +272,16 @@ namespace MC_027
 
                 registers = master.ReadInputRegisters(SlaveAddress, (ushort)REGISTER.REGULATOR_VALUES_START,
                     REGISTER.REGULATOR_VALUES_END - REGISTER.REGULATOR_VALUES_START + 1);
+                moduleInfo.DesiredAngle = UintToFloat(((uint)registers[0] << 16) | registers[1]);
+                moduleInfo.PwmValue = registers[2];
                 moduleInfo.Angle1 = UintToFloat(((uint)registers[3] << 16) | registers[4]);
                 moduleInfo.Angle2 = UintToFloat(((uint)registers[5] << 16) | registers[6]);
             }
             catch (Exception exception)
             {
+                if (!IsConnected)
+                    return;
+
                 Stop();
                 MessageBox.Show("Connection is lost\n" + exception.Message);
             }
@@ -281,6 +294,7 @@ namespace MC_027
 
         private enum REGISTER : ushort
         {
+            PWM_VALUE = 0x0102,
             OUTPUT_CONFIG = 0x0214,
             STATUS = 0x0215,
             MODULE_INFO_START = 0x0280,

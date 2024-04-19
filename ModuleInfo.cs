@@ -17,16 +17,28 @@ namespace MC_027
         public UInt16 ModuleId { get; set; }
         public string UniqueId { get; set; } = "";
         public string FirmwareVersion { get; set; } = "";
+
+        public float DesiredAngle { get; set; }
+        public UInt16 PwmValue { get; set; }
         public float Angle1 { get; set; }
         public float Angle2 { get; set; }
+
         [Flags]
         public enum OUTPUT_CONFIG : ushort
         {
+            PWM_ENABLE = 0x0001,
+            OTYPE = 0x0002,
+            NOFFSET = 0x0004,
+            NULL = 0x0008,
             MASTER_RESOLVER = 0x0800,
             DES1 = 0x1000,
             DES2 = 0x2000,
             TYPE1 = 0x4000,
             TYPE2 = 0x8000,
+
+            ANGLE_OFFSET_NONE = 0x0000,
+            ANGLE_OFFSET_POSITIVE = NULL,
+            ANGLE_OFFSET_NEGATIVE = NULL | NOFFSET,
 
             MASTER_SENSOR_ONLY = 0x0000,
             MASTER_THAN_SLAVE = DES1,
@@ -36,9 +48,11 @@ namespace MC_027
             PWM_REGULATOR_MODE = TYPE2,
             EXTERN_REGULATOR_MODE = TYPE1 | TYPE2,
 
+            ANGLE_OFFSET = NULL | NOFFSET,
             RESOLVERS_MODE = DES1 | DES2,
             REGULATOR_MODE = TYPE1 | TYPE2,
 
+            ANGLE_OFFSET_OFFSET = 2,
             RESOLVERS_MODE_OFFSET = 12,
             REGULATOR_MODE_OFFSET = 14,
         }
@@ -54,7 +68,7 @@ namespace MC_027
             RESOLVER_2_EXTREME_SYGNAL = 0x0020,
             RESOLVER_2_WEAK_SYGNAL = 0x0040,
             RESOLVER_2_NO_SYGNAL = 0x0080,
-            DEF = 0x0100,
+            NEED_TO_RELOAD = 0x0100,
             TUNES_ENABLED = 0x8000,
         };
         public STATUS Status { get; set; }

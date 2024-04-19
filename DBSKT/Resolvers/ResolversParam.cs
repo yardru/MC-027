@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace MC_027
 {
-    [AddINotifyPropertyChangedInterface]
-    public class ResolversParam
+    public class ResolversParam : Param
     {
         public enum TYPE
         {
@@ -19,10 +18,8 @@ namespace MC_027
         private static readonly string[] MeasurementUnit = ["V", "°", "kHz"];
         private static readonly double[] Scale = [0.038, 0.09, 0.25];
 
-        public string? Description { get; set; }
         public byte Value1 { get; set; }
         public byte Value2 { get; set; }
-        public ushort Address { get; set; }
         public TYPE Type { get; set; }
 
         public string Value1Str { get => ValueToString(Value1); }
